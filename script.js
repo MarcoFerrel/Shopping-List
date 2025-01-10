@@ -1,8 +1,10 @@
-const itemFrom = document.querySelector('#item-form');
+const itemForm = document.querySelector('#item-form');
 const itemInput = document.querySelector('#item-input');
 const itemList = document.querySelector('#item-list');
 const clearButton = document.querySelector('#clear');
 const itemFilter = document.querySelector('#filter');
+const formButton = itemForm.querySelector('button');
+let isEditMode = false;
 
 const displayItems = () => {
   const itemsFromStorage = getItemsFromStorage();
@@ -21,6 +23,21 @@ const onAddItemSubmit = (e) => {
     return;
   }
 
+    //Check for edit mode
+    if (isEditMode) {
+        const itemToEdit = itemList.querySelector('.edit-mode');
+
+        removeItemFromStorage(itemToEdit.textContent);
+        itemToEdit.classList.remove('edit-mode');
+        itemToEdit.remove();
+        isEditMode = false;
+    } else {
+        if (checkDuplicate(newItem)) {
+            alert('That item already exist');
+            return;
+        }
+    }
+    
   //Create Item DOM element
   addItemToDom(newItem);
 
@@ -31,6 +48,7 @@ const onAddItemSubmit = (e) => {
 
   itemInput.value = '';
 };
+
 
 const addItemToDom = (item) => {
   const li = document.createElement('li');
@@ -46,7 +64,25 @@ const addItemToDom = (item) => {
 const onClickItem = (e) => {
   if (e.target.parentElement.classList.contains('remove-item')) {
     removeItem(e.target.parentElement.parentElement);
+  } else {
+    setItemToEdit(e.target);
   }
+};
+
+const checkDuplicate = (item) => {
+    const itemsFromStorage = getItemsFromStorage();
+
+    return itemsFromStorage.includes(item);
+}
+
+const setItemToEdit = (item) => {
+    isEditMode = true;
+    
+    itemList.querySelectorAll('li').forEach((i) => i.classList.remove('edit-mode'));
+  item.classList.add('edit-mode');
+  formButton.innerHTML = '<i class="fa-solid fa-pen"></i> Update Item';
+  formButton.style.backgroundColor = '#229B22';
+  itemInput.value = item.textContent;
 };
 
 const removeItem = (item) => {
@@ -132,6 +168,7 @@ const filterItems = (e) => {
 };
 
 const checkUI = () => {
+    itemInput.value = '';
   const items = itemList.querySelectorAll('li');
 
   if (items.length === 0) {
@@ -141,12 +178,18 @@ const checkUI = () => {
     clearButton.style.display = 'block';
     itemFilter.style.display = 'block';
   }
+    
+    formButton.innerHTML = '<i class="fa-solid fa-plus"></i>Add Item';
+    formButton.style.backgroundColor = '#333'
+    
+    isEditMode = false;
+    
 };
 
 // Initialize app
 const init = () => {
   // Event Listeners
-  itemFrom.addEventListener('submit', onAddItemSubmit);
+  itemForm.addEventListener('submit', onAddItemSubmit);
   itemList.addEventListener('click', onClickItem);
   clearButton.addEventListener('click', clearItems);
   itemFilter.addEventListener('input', filterItems);
